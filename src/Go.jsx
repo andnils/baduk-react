@@ -23,7 +23,7 @@ class Go extends Component {
 
     constructor(props) {
 	super(props);
-	this.state = {board: genEmptyBoard(19),
+	this.state = {board: genEmptyBoard(9),
 		      ghostCol: null,
 		      ghostRow: null,
 		      currentPlayer: BLACK};
@@ -97,6 +97,7 @@ class Go extends Component {
 	const padding = this.getUnitSize();
 	return (
 	    <line key={'row' + i}
+		  pointerEvents="none"
 		  x1={padding}
 		  y1={(i+1) * padding}
 		  x2={padding+boardSizePixels}
@@ -109,6 +110,7 @@ class Go extends Component {
 	const padding = this.getUnitSize();
 	return (
 	    <line key={'col' + i}
+		  pointerEvents="none"
 		  x1={(i+1) * padding}
 		  y1={padding}
 		  x2={(i+1) * padding}
@@ -125,6 +127,7 @@ class Go extends Component {
 	const key = 'starPoint-' + col + '-' + row;
 	return (
 	    <circle key={key}
+		    pointerEvents="none"
 		    cx={x} cy={y}
 		    r={starPointRadius}
 		    fill="black" stroke="black" />);
@@ -177,6 +180,7 @@ class Go extends Component {
 	const key = `key-${color}-${col}-${row}`;
 	return (
 	    <circle key={key}
+		    pointerEvents="none"
 		    cx={unitSize * col}
 		    cy={unitSize * row}
 		    r={stoneRadius}
