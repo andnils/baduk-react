@@ -5,8 +5,8 @@ import _ from 'lodash';
 const boardSizePixels = 500;
 const boardColor = "rgb(250, 213, 94)";
 const EMPTY = '';
-const BLACK = 'black';
-const WHITE = 'white';
+const BLACK = 'black';  // this const doubles as the html color value
+const WHITE = 'white';  // this const doubles as the html color value
 
 function doTimes(numTimes, fn) {
     return _.map(_.range(numTimes), (i)=>fn(i));
@@ -23,23 +23,28 @@ class Go extends Component {
 
     constructor(props) {
 	super(props);
-	this.state = {board: genEmptyBoard(9),
-		      ghostCol: null,
-		      ghostRow: null,
+	this.boardSize = 9;
+	// unitSize: the distance (in pixels) between two lines.
+	this.unitSize = boardSizePixels / (this.boardSize - 1);
+	this.state = {board: genEmptyBoard(this.boardSize),
+		      pointerCol: null,
+		      pointerRow: null,
 		      currentPlayer: BLACK};
     }
 
+    
     updateCoords(evt) {
 	const e = evt.target;
 	const dim = e.getBoundingClientRect();
 	const x = evt.clientX - dim.left;
 	const y = evt.clientY - dim.top;
 
-	const col = 1 + parseInt( x / this.getUnitSize(), 10);
-	const row = 1 + parseInt( y / this.getUnitSize(), 10);
-	this.setState({ghostCol: col, ghostRow: row});
+	const col = 1 + parseInt( x / this.unitSize, 10);
+	const row = 1 + parseInt( y / this.unitSize, 10);
+	this.setState({pointerCol: col, pointerRow: row});
     }
 
+    
     getNextPlayer(currentPlayer) {
 	if (currentPlayer === BLACK) {
 	    return WHITE;
@@ -48,13 +53,13 @@ class Go extends Component {
 	}
     }
 
+    
     clickHandler(evt) { 
-
 	// TODO: verify valid placement
-	//       (1) stone in place already=
+	//       (1) stone in place already?  FIXED!
 	//       (2) suicide? ko?
-	const col = this.state.ghostCol;
-	const row = this.state.ghostRow;
+	const col = this.state.pointerCol;
+	const row = this.state.pointerRow;
 	const currentPlayer = this.state.currentPlayer;
 	const board = this.state.board;
 	if (board[row-1][col-1]) {
@@ -66,35 +71,21 @@ class Go extends Component {
 		       currentPlayer: this.getNextPlayer(currentPlayer)});
     }
 
-    /**
-     * For a 9x9 board - return 9.
-     * For a 19x19 board - return 19.
-     **/
-    getBoardSize() {
-	return this.state.board[0].length;
-    }
-
-    /**
-     * Return the distance (in pixels) between two lines.
-     **/
-    getUnitSize() {
-	const size = this.getBoardSize() - 1;
-	return boardSizePixels / size;
-	
-    }
-
+    
     drawCols() {
-	const n = this.getBoardSize();
+	const n = this.boardSize;
 	return doTimes(n, this.drawCol.bind(this));
     }
 
+    
     drawRows() {
-	const n = this.getBoardSize();
+	const n = this.boardSize;
 	return doTimes(n, this.drawRow.bind(this));
     }
 
+    
     drawRow(i) {
-	const padding = this.getUnitSize();
+	const padding = this.unitSize;
 	return (
 	    <line key={'row' + i}
 		  pointerEvents="none"
@@ -106,8 +97,9 @@ class Go extends Component {
 	);
     }
 
+    
     drawCol(i) {
-	const padding = this.getUnitSize();
+	const padding = this.unitSize;
 	return (
 	    <line key={'col' + i}
 		  pointerEvents="none"
@@ -121,8 +113,8 @@ class Go extends Component {
 
 
     drawStarPoint(col, row) {
-	const x = col * this.getUnitSize();
-	const y = row * this.getUnitSize();
+	const x = col * this.unitSize;
+	const y = row * this.unitSize;
 	const starPointRadius = 2;
 	const key = 'starPoint-' + col + '-' + row;
 	return (
@@ -132,15 +124,15 @@ class Go extends Component {
 		    r={starPointRadius}
 		    fill="black" stroke="black" />);
     }
+
     
     drawStarPoints() {
-	const boardSize = this.getBoardSize();
 	let starPoints = [];
-	if (boardSize === 9) {	    
+	if (this.boardSize === 9) {	    
 	    starPoints = [[3,3], [7,3], [5, 5], [3,7], [7,7]];
-	} else if (boardSize === 13) {
+	} else if (this.boardSize === 13) {
 	    starPoints = [[4,4], [10,4], [7,7], [4,10], [10,10]];
-	} else if (boardSize === 19) {
+	} else if (this.boardSize === 19) {
 	    starPoints = [[4,4], [10,4], [16,4],
 			  [4,10], [10,10], [16,10],
 			  [4,16], [10,16], [16,16]];
@@ -148,6 +140,7 @@ class Go extends Component {
 	return _.map(starPoints, (([col,row]) => this.drawStarPoint(col,row)));
     }
 
+    
     drawStonesInRow(rowData, rowIdx) {
 	const indexedRowData = _.zip(rowData, _.range(rowData.length));
 	return _.map(indexedRowData, ([data, idx]) => {
@@ -158,10 +151,11 @@ class Go extends Component {
 	    }
 	});
     }
+
     
     drawStones() {
 	const board = this.state.board;
-	const boardSize = this.getBoardSize();
+	const boardSize = this.boardSize;
 
 	const indexedRows = _.zip(board, _.range(boardSize));
 	const temp = _.map(indexedRows, ([data, idx]) => {
@@ -172,10 +166,8 @@ class Go extends Component {
     }
 
     
-
-
     drawStone(col, row, color) {
-	const unitSize = this.getUnitSize();
+	const unitSize = this.unitSize;
 	const stoneRadius = (unitSize / 2) - 1;
 	const key = `key-${color}-${col}-${row}`;
 	return (
@@ -189,12 +181,13 @@ class Go extends Component {
 	);
     }
 
-    drawGhostStone() {
-	const unitSize = this.getUnitSize();
+    
+    drawPointer() {
+	const unitSize = this.unitSize;
 	const stoneRadius = 4;
 	return (
-	    <circle cx={unitSize * this.state.ghostCol}
-		    cy={unitSize * this.state.ghostRow}
+	    <circle cx={unitSize * this.state.pointerCol}
+		    cy={unitSize * this.state.pointerRow}
 		    r={stoneRadius}
 		    fill="none"
 		    stroke="green" />
@@ -203,29 +196,27 @@ class Go extends Component {
     
     
     render() {
-	const unitSize = this.getUnitSize();
 	return (
 	    <div className="Go" onClick={this.clickHandler.bind(this)}>
 
 	      <svg version="1.1"
 		   baseProfile="full"
-		   width={boardSizePixels + (2 * unitSize)} height={boardSizePixels + (2 * unitSize)}
+		   width={boardSizePixels + (2 * this.unitSize)}
+		   height={boardSizePixels + (2 * this.unitSize)}
 		   xmlns="http://www.w3.org/2000/svg">
 		
-		<rect width={boardSizePixels + unitSize} height={boardSizePixels + unitSize}
-		      x={unitSize/2} y={unitSize/2}
+		<rect width={boardSizePixels + this.unitSize}
+		      height={boardSizePixels + this.unitSize}
+		      x={this.unitSize/2}
+		      y={this.unitSize/2}
 		      fill={boardColor}
-		      onMouseMove={this.updateCoords.bind(this)} 
-		      />
+		      onMouseMove={this.updateCoords.bind(this)} />
 		
 		{this.drawCols()}
 		{this.drawRows()}
 		{this.drawStarPoints()}
-
 		{this.drawStones()}
-
-		{this.drawGhostStone()}
-
+		{this.drawPointer()}
 	      </svg>
 	      
 	    </div>
