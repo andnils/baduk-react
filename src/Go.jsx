@@ -67,6 +67,7 @@ class Go extends Component {
 	    return;
 	}
 	board[row-1][col-1] = currentPlayer;
+	// TODO: now is a good time to check for capture
 	this.setState({board: board,
 		       currentPlayer: this.getNextPlayer(currentPlayer)});
     }
@@ -120,9 +121,11 @@ class Go extends Component {
 	return (
 	    <circle key={key}
 		    pointerEvents="none"
-		    cx={x} cy={y}
+		    cx={x}
+		    cy={y}
 		    r={starPointRadius}
-		    fill="black" stroke="black" />);
+		    fill="black"
+		    stroke="black" />);
     }
 
     
